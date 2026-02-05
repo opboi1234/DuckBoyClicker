@@ -13,30 +13,24 @@
     <a href="#" id="shopLink">Shop</a>
     <a href="#" id="leaderboardLink">Leaderboard</a>
     <span id="navUser" class="pill"></span>
-    <a href="#" id="authLink">Login / Sign up</a>
-    <a href="#" id="logoutLink" style="display:none;">Logout</a>
   </nav>
 </header>
 
-<div class="warning" id="warning">🐤 DUCKS INVADING!!</div>
-<div class="duckInstruction" id="instruction">
-  <b>TAP / HIT / TOUCH THE PETS!</b><br>
-  Golden Goose: +3/sec, Rainbow Duck: +1000/sec, Red Duck: triple click, Golden Cat: +50/sec, Chad Penguin: Boss!
-</div>
-<div class="petBadge" id="petBadge"></div>
-
-<main id="tapArea">
-  <div class="duckLayer" id="duckLayer"></div>
-  <div class="card">
-    <div class="pill" id="statusLine">Not logged in</div>
-    <div class="name" id="displayName">Guest</div>
-    <div class="countWrap" id="countWrap">
-      <div class="count" id="count">0</div>
+<div id="tapArea">
+    <div id="petDisplay"></div>
+    <div class="card">
+        <div class="pill" id="statusLine">Not logged in</div>
+        <div class="name" id="displayName">Guest</div>
+        <div class="countWrap">
+            <div class="count" id="count">0</div>
+        </div>
+        <div class="hint">Log in to save progress and leaderboard.</div>
     </div>
-    <div class="hint" id="hint">Log in to save progress and leaderboard.</div>
-  </div>
-</main>
+</div>
 
+<div id="duckLayer"></div>
+<div id="floatingLayer"></div>
+<div id="bossLayer"></div>
 <div class="toast" id="toast"></div>
 
 <!-- Shop Modal -->
@@ -55,6 +49,11 @@
     <div id="leaderboardList"></div>
     <button id="closeLeaderboard">Close</button>
   </div>
+</div>
+
+<!-- Boss HP Bar -->
+<div id="bossHPContainer" style="display:none;">
+    <div id="bossHP"></div>
 </div>
 
 <script src="main.js"></script>
