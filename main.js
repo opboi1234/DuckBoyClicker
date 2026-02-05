@@ -1,5 +1,5 @@
 // ---------- CONFIG ----------
-const JSONBIN_API_KEY = "YOUR_JSONBIN_KEY"; // replace
+const JSONBIN_API_KEY = "$2a$10$eSpu6OdVbWfJzjSGdvMa5uwYI15tXgj1Syd97vF3Hb/xA4PljLNma"; // replace
 const BIN_ID = "6983e9a943b1c97be966219e"; // your bin ID
 const TAP_STEP = 75;
 
