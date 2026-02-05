@@ -1,170 +1,181 @@
-// ---------- CONFIG ----------
+// ----------------- CONFIG -----------------
 const JSONBIN_API_KEY = "$2a$10$eSpu6OdVbWfJzjSGdvMa5uwYI15tXgj1Syd97vF3Hb/xA4PljLNma";
 const BIN_ID = "6983e9a943b1c97be966219e";
-const SAVE_INTERVAL = 3000; // auto-save every 3s
+const TAP_STEP = 1; // 1 tap per click
+const RAID_INTERVAL = 75; // every 75 taps
+const CHAD_INTERVAL = 1000; // every 1000 taps
+const SAVE_INTERVAL = 5000; // autosave every 5 sec
 
-// ---------- UI ----------
+// ----------------- STATE -----------------
+let user = { username: "Guest", taps: 0, pets: {}, scoreHistory: [] };
+let petTimers = {};
+let rainbowActive = false;
+let raidActive = false;
+let chadActive = false;
+
+// ----------------- UI -----------------
 const tapArea = document.getElementById("tapArea");
 const countEl = document.getElementById("count");
 const navUser = document.getElementById("navUser");
-const displayName = document.getElementById("displayName");
 const authLink = document.getElementById("authLink");
 const logoutLink = document.getElementById("logoutLink");
 const toast = document.getElementById("toast");
+const petBadge = document.getElementById("petBadge");
 const duckLayer = document.getElementById("duckLayer");
+const shopLink = document.getElementById("shopLink");
+const leaderboardLink = document.getElementById("leaderboardLink");
 const shopModal = document.getElementById("shopModal");
-const shopItems = document.getElementById("shopItems");
+const shopItemsEl = document.getElementById("shopItems");
 const closeShop = document.getElementById("closeShop");
+const leaderboardModal = document.getElementById("leaderboardModal");
+const leaderboardList = document.getElementById("leaderboardList");
+const closeLeaderboard = document.getElementById("closeLeaderboard");
 
-// ---------- STATE ----------
-let user = {
-    username: "Guest",
-    taps: 0,
-    pets: []
-};
-let petTimers = {};
-let rainbowActive = false;
-
-// ---------- HELPERS ----------
-function showToast(msg){
-    toast.textContent = msg;
-    toast.classList.add("show");
-    setTimeout(()=>toast.classList.remove("show"),900);
-}
-
+// ----------------- HELPERS -----------------
+function showToast(msg){ toast.textContent = msg; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"),1000);}
 function saveData(){
     fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`,{
         method:"PUT",
-        headers:{
-            'Content-Type':'application/json',
-            'X-Master-Key':JSONBIN_API_KEY
-        },
+        headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},
         body:JSON.stringify(user)
-    });
+    }).then(()=>console.log("Saved"));
 }
-
 function loadData(){
     fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`,{
         headers:{'X-Master-Key':JSONBIN_API_KEY}
-    })
-    .then(r=>r.json())
-    .then(d=>{
-        if(d.record && typeof d.record.taps==="number") user=d.record;
+    }).then(r=>r.json()).then(d=>{
+        if(d.record) user=d.record;
         updateUI();
-        startPets(); // start pets from saved data
-    }).catch(e=>console.log("Failed to load:",e));
+    });
 }
-
 function updateUI(){
     countEl.textContent = user.taps;
     navUser.textContent = user.username;
-    displayName.textContent = user.username;
 }
 
-// ---------- PETS ----------
-const petDefinitions = [
-    {name:"Golden Duck", icon:"🪿", cps:2, cost:50},
-    {name:"Rainbow Duck", icon:"🌈🦆", cps:1000, duration:60000, cost:500},
-    {name:"Red Duck", icon:"🦆🔴", cps:0, duration:30000, cost:200},
-    {name:"Golden Cat", icon:"🐱🪙", cps:5, cost:150}
-];
+// ----------------- PETS -----------------
+const petTypes = {
+    goldenDuck: {emoji:"🪿", perSec:2, price:50},
+    rainbowDuck: {emoji:"🌈🦆", perSec:1000, price:5000, rare:true},
+    redDuck: {emoji:"🦆", perSec:0, price:20, clickMulti:3},
+    goldenCat: {emoji:"🐱‍👓", perSec:50, price:300, rare:true},
+};
 
-function spawnPet(pet){
-    const el = document.createElement("div");
-    el.className="duck pet";
-    el.innerHTML=pet.icon+'<span class="legs"></span>';
-    el.style.left = `${Math.random()*400+50}px`;
-    el.style.top = `${Math.random()*200+50}px`;
-    duckLayer.appendChild(el);
+function addPet(type){
+    if(!petTypes[type]) return;
+    if(user.pets[type]) user.pets[type]++;
+    else user.pets[type]=1;
 
-    if(pet.cps>0){
-        const interval = setInterval(()=>{
-            user.taps += pet.cps;
+    let pet = document.createElement("div");
+    pet.className="duck pet";
+    pet.innerHTML=petTypes[type].emoji+'<span class="legs"></span>';
+    pet.style.left=Math.random()*300+"px";
+    pet.style.top=Math.random()*200+"px";
+    duckLayer.appendChild(pet);
+
+    if(petTypes[type].perSec>0){
+        if(petTimers[type]) clearInterval(petTimers[type]);
+        petTimers[type] = setInterval(()=>{
+            user.taps += petTypes[type].perSec;
             updateUI();
         },1000);
-        if(!petTimers[pet.name]) petTimers[pet.name]=[];
-        petTimers[pet.name].push(interval);
     }
 
-    if(pet.duration){
-        setTimeout(()=>{
-            el.remove();
-            if(petTimers[pet.name]){
-                petTimers[pet.name].forEach(t=>clearInterval(t));
-                petTimers[pet.name]=[];
-            }
-            showToast(`${pet.name} left!`);
-        }, pet.duration);
+    if(petTypes[type].clickMulti){
+        pet.onclick = ()=>{
+            user.taps += petTypes[type].clickMulti;
+            updateUI();
+        }
     }
 
-    el.onclick = ()=>{
-        if(pet.cps>0) user.taps += pet.cps;
-        updateUI();
-    };
+    showToast(`${type} purchased! +${petTypes[type].perSec}/sec`);
 }
 
-// Start all purchased pets
-function startPets(){
-    user.pets.forEach(p=>{
-        const petDef = petDefinitions.find(d=>d.name===p);
-        if(petDef) spawnPet(petDef);
-    });
-}
-
-// ---------- TAP ----------
-tapArea.addEventListener("pointerdown",(e)=>{
-    if(e.target !== tapArea) return;
-    user.taps += 1;
+// ----------------- TAP -----------------
+tapArea.addEventListener("pointerdown", (e)=>{
+    if(e.target!==tapArea) return;
+    user.taps += TAP_STEP;
     updateUI();
 
-    // Random Rainbow Duck spawn
-    if(user.taps % 5000===0 && !rainbowActive){
-        rainbowActive=true;
-        const rainbow = petDefinitions.find(p=>p.name==="Rainbow Duck");
-        spawnPet(rainbow);
-        setTimeout(()=> rainbowActive=false, rainbow.duration);
-    }
+    if(user.taps % RAID_INTERVAL===0 && !raidActive) startRaid();
+    if(user.taps % CHAD_INTERVAL===0 && !chadActive) spawnChad();
+
+    if(Math.random()<0.01 && !rainbowActive) spawnRainbow();
 });
 
-// ---------- SHOP ----------
-function openShop(){
+// ----------------- RAIDS -----------------
+function startRaid(){
+    raidActive=true;
+    showToast("🐤 Duck Raid Incoming!");
+    setTimeout(()=>{ raidActive=false; },10000);
+}
+
+// ----------------- RAINBOW -----------------
+function spawnRainbow(){
+    rainbowActive=true;
+    addPet("rainbowDuck");
+    setTimeout(()=>{ rainbowActive=false; showToast("Rainbow Duck disappeared!"); },60000);
+}
+
+// ----------------- CHAD PENGUIN -----------------
+function spawnChad(){
+    chadActive=true;
+    let hp = 50;
+    let chad = document.createElement("div");
+    chad.className="duck pet";
+    chad.innerHTML="🐧 CHAD<span class='legs'></span>";
+    chad.style.left="150px";
+    chad.style.top="50px";
+    duckLayer.appendChild(chad);
+
+    chad.onclick=()=>{
+        hp--;
+        showToast(`Chad HP: ${hp}`);
+        if(hp<=0){
+            chad.remove();
+            chadActive=false;
+            showToast("You defeated Chad!");
+        }
+    }
+}
+
+// ----------------- SHOP -----------------
+const shopList = Object.keys(petTypes);
+shopLink.onclick=()=>{
     shopModal.style.display="flex";
-    shopItems.innerHTML="";
-    petDefinitions.forEach(pet=>{
-        const btn = document.createElement("button");
-        btn.textContent = `${pet.name} - ${pet.cost} taps`;
-        btn.onclick = ()=>{
-            if(user.taps>=pet.cost){
-                user.taps -= pet.cost;
-                user.pets.push(pet.name);
-                spawnPet(pet);
+    shopItemsEl.innerHTML="";
+    shopList.forEach(p=>{
+        let b=document.createElement("button");
+        b.textContent=`Buy ${p} (${petTypes[p].price} taps)`;
+        b.onclick=()=>{
+            if(user.taps>=petTypes[p].price){
+                user.taps-=petTypes[p].price;
+                addPet(p);
                 updateUI();
                 saveData();
-                showToast(`Bought ${pet.name}!`);
-            } else showToast("Not enough taps!");
+            }else showToast("Not enough taps!");
         }
-        shopItems.appendChild(btn);
+        shopItemsEl.appendChild(b);
     });
-}
+};
+closeShop.onclick=()=>shopModal.style.display="none";
 
-closeShop.onclick = ()=> shopModal.style.display="none";
-document.getElementById("shopLink").onclick = openShop;
+// ----------------- LEADERBOARD -----------------
+leaderboardLink.onclick=()=>{
+    leaderboardModal.style.display="flex";
+    leaderboardList.innerHTML="";
+    // For now just show local score history
+    user.scoreHistory.sort((a,b)=>b-a).forEach((s,i)=>{
+        let div=document.createElement("div");
+        div.textContent=`#${i+1}: ${s} taps`;
+        leaderboardList.appendChild(div);
+    });
+};
+closeLeaderboard.onclick=()=>leaderboardModal.style.display="none";
 
-// ---------- LOGIN ----------
-authLink.onclick = ()=>{
-    let name = prompt("Enter username:");
-    if(name){ user.username=name; updateUI(); saveData(); logoutLink.style.display="inline"; authLink.style.display="none"; }
-}
+// ----------------- AUTO SAVE -----------------
+setInterval(saveData, SAVE_INTERVAL);
 
-logoutLink.onclick = ()=>{
-    user.username="Guest";
-    updateUI();
-    logoutLink.style.display="none";
-    authLink.style.display="inline";
-}
-
-// ---------- AUTO SAVE ----------
-setInterval(saveData,SAVE_INTERVAL);
-
-// ---------- INIT ----------
+// ----------------- INIT -----------------
 loadData();
+updateUI();
