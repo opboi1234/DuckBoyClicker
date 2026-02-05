@@ -1,39 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tap Game</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DuckyBoyClicker</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <div class="brand">Tap Leaderboard</div>
+  <div class="brand">DuckyBoyClicker</div>
   <nav>
-    <span id="navUser">Guest</span>
-    <button onclick="login(prompt('Username?'))">Login</button>
-    <button onclick="rebirth()">Rebirth</button>
+    <a href="#" id="shopLink">Shop</a>
+    <a href="#" id="leaderboardLink">Leaderboard</a>
+    <span id="navUser" class="pill"></span>
+    <a href="#" id="authLink">Login / Sign up</a>
+    <a href="#" id="logoutLink" style="display:none;">Logout</a>
   </nav>
 </header>
 
+<div class="warning" id="warning">DUCKS INVADING!!</div>
+<div class="duckInstruction" id="instruction">
+  <b>TAP / HIT / TOUCH THE DUCKS!</b><br>
+  Golden Goose: <b>+3/sec</b>, Rainbow Duck: <b>+1000/sec</b>, Red Duck: <b>triple click to remove</b>
+</div>
+<div class="petBadge" id="petBadge"></div>
+
 <main id="tapArea">
+  <div class="duckLayer" id="duckLayer"></div>
   <div class="card">
+    <div class="pill" id="statusLine">Not logged in</div>
     <div class="name" id="displayName">Guest</div>
-    <div class="countWrap">
+    <div class="countWrap" id="countWrap">
       <div class="count" id="count">0</div>
     </div>
-    <div class="hint">Tap anywhere!</div>
+    <div class="hint" id="hint">Log in to be counted on the leaderboard.</div>
   </div>
 </main>
 
-<div id="shop">
-  <button data-pet="goldenGoose" data-cost="50">Golden Goose (50)</button>
-</div>
-
 <div class="toast" id="toast"></div>
 
-<ul id="leaderboard"></ul>
+<!-- Shop Modal -->
+<div class="modal" id="shopModal">
+  <div class="modal-content">
+    <h2>Pet Shop</h2>
+    <div id="shopItems"></div>
+    <button id="closeShop">Close</button>
+  </div>
+</div>
 
-<script type="module" src="script.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
