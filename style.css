@@ -1,81 +1,33 @@
-/* --- General --- */
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,Arial;height:100vh;background:#fafafa}
-header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff;border-bottom:1px solid #eee;z-index:10}
-.brand{font-weight:800}
-nav{display:flex;gap:12px;align-items:center}
-nav a{ text-decoration:none;color:#111;padding:6px 10px;border-radius:10px}
-nav a:hover{background:#f3f3f3}
-.pill{font-size:12px;opacity:.7}
-
-/* --- Main --- */
-main{height:100vh;display:grid;place-items:center;padding-top:54px;user-select:none;cursor:pointer;position:relative;overflow:hidden}
-main.blocked{cursor:not-allowed}
-
-/* --- Card --- */
-.card{position:relative;text-align:center;padding:24px;border:1px solid #eee;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.07);max-width:520px;width:calc(100% - 48px);background:#fff;z-index:5}
-.name{font-size:22px;font-weight:800;margin-top:4px}
-.countWrap{position:relative;margin:14px auto 8px;width:280px;height:160px;display:grid;place-items:center}
-.count{font-size:72px;font-weight:950;margin:0;line-height:1}
-.hint{opacity:.7;margin-top:10px}
-
-/* --- Warning --- */
-.warning{position:fixed;top:60px;left:50%;transform:translateX(-50%);font-weight:950;font-size:34px;letter-spacing:1px;padding:10px 18px;border-radius:999px;color:#111;background:#ffe66b;border:2px solid #111;box-shadow:0 10px 26px rgba(0,0,0,.16);z-index:50;display:none}
-.warning.show{display:block;animation:pop .18s ease-out}
+*{box-sizing:border-box;}
+body{margin:0;font-family:system-ui,Arial;height:100vh;background:#fafafa;cursor:pointer;}
+header{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#fff;border-bottom:1px solid #eee;z-index:10;}
+nav a{margin-left:10px;text-decoration:none;color:#111;padding:6px 10px;border-radius:10px;}
+nav a:hover{background:#f3f3f3;}
+.brand{font-weight:800;}
+main{display:grid;place-items:center;height:100vh;padding-top:54px;position:relative;overflow:hidden;}
+.card{background:#fff;padding:24px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.07);text-align:center;max-width:520px;width:90%;}
+.name{font-size:22px;font-weight:800;margin-top:4px;}
+.count{font-size:72px;font-weight:950;margin:0;line-height:1;}
+.countWrap{position:relative;margin:14px auto 8px;width:280px;height:160px;display:grid;place-items:center;}
+.pill{font-size:12px;opacity:.7;}
+.hint{opacity:.7;margin-top:10px;}
+.warning{position:fixed;top:60px;left:50%;transform:translateX(-50%);font-weight:950;font-size:34px;padding:10px 18px;border-radius:999px;background:#ffe66b;color:#111;border:2px solid #111;box-shadow:0 10px 26px rgba(0,0,0,.16);z-index:50;display:none;}
+.warning.show{display:block;animation:pop .18s ease-out;}
 @keyframes pop{from{transform:translateX(-50%) scale(.92);opacity:.2}to{transform:translateX(-50%) scale(1);opacity:1}}
-
-/* --- Duck Instructions --- */
-.duckInstruction{position:fixed;top:112px;left:50%;transform:translateX(-50%);z-index:50;display:none;font-weight:950;font-size:15px;background:rgba(255,255,255,.97);border:1px solid #eee;border-radius:999px;padding:8px 12px;box-shadow:0 8px 20px rgba(0,0,0,.10);white-space:nowrap;text-align:center}
-.duckInstruction.show{display:block}
-
-/* --- Pet Badge --- */
-.petBadge{position:fixed;top:162px;left:50%;transform:translateX(-50%);z-index:55;display:none;font-weight:900;font-size:13px;background:rgba(255,255,255,.97);border:1px solid #eee;border-radius:999px;padding:8px 12px;box-shadow:0 8px 20px rgba(0,0,0,.10);white-space:nowrap}
-.petBadge.show{display:block}
-
-/* --- Shake --- */
-.shake{animation:shake 240ms ease-in-out}
-@keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}100%{transform:translateX(0)}}
-
-/* --- Duck Layer --- */
-.duckLayer{position:absolute;inset:0;pointer-events:none;z-index:25}
-.duck{position:absolute;pointer-events:auto;cursor:pointer;user-select:none;will-change:transform,left,top,opacity}
-.duck .body{display:inline-block;font-size:44px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.15));line-height:1}
-.duck .legs{position:relative;display:block;height:14px;width:44px;margin:-2px auto 0}
-.duck .legs::before,.duck .legs::after{content:'';position:absolute;top:0;width:10px;height:12px;border-left:3px solid #222;border-bottom:3px solid #222;border-radius:2px;transform:rotate(10deg)}
-.duck .legs::before{left:12px}
-.duck .legs::after{right:12px;transform:rotate(-10deg)}
-
-/* --- Hugs --- */
-.hug1{top:18px;left:8px;transform:rotate(-10deg)}
-.hug2{top:10px;right:10px;transform:rotate(12deg)}
-.hug3{bottom:10px;left:18px;transform:rotate(10deg)}
-.hug4{bottom:8px;right:18px;transform:rotate(-8deg)}
-.hug5{top:52px;left:-6px;transform:rotate(-2deg)}
-
-/* --- Animations --- */
-.walking{animation:walkIn 950ms ease-out forwards}
-@keyframes walkIn{0%{transform:translate(var(--fromX),var(--fromY)) scale(.95);opacity:.8}100%{transform:translate(0,0) scale(1);opacity:1}}
-.leaving{animation:walkAway 900ms ease-in forwards}
-@keyframes walkAway{0%{opacity:1;transform:translate(0,0) scale(1)}70%{opacity:1;transform:translate(90px,-40px) scale(.95)}100%{opacity:0;transform:translate(160px,-90px) scale(.85)}}
-
-/* --- Toast --- */
-.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
-.toast.show{opacity:1}
-
-/* --- Golden Goose --- */
-.goose .body{font-size:46px}
-.golden .body{text-shadow:0 0 14px rgba(255,200,0,.9)}
-.roaming{animation:roam 1400ms linear infinite}
-@keyframes roam{0%{transform:translate(0,0)}25%{transform:translate(120px,-40px)}50%{transform:translate(40px,120px)}75%{transform:translate(-110px,30px)}100%{transform:translate(0,0)}}
-.pet{animation:petBounce 700ms ease-in-out infinite}
-@keyframes petBounce{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(0,-8px) scale(1.03)}}
-
-/* --- Mad Duck --- */
-.madDuck .body{text-shadow:0 0 14px rgba(255,0,0,.65);filter:drop-shadow(0 12px 16px rgba(255,0,0,.18))}
-.lazyWalk{animation:lazyIn 1800ms ease-out forwards}
-@keyframes lazyIn{0%{transform:translate(var(--fromX),var(--fromY)) scale(.96);opacity:.85}100%{transform:translate(0,0) scale(1);opacity:1}}
-
-/* --- Shop --- */
-#shop{position:fixed;top:54px;right:16px;background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;box-shadow:0 6px 20px rgba(0,0,0,.08);z-index:100}
-#shop button{margin:4px;padding:6px 12px;border-radius:8px;border:none;background:#ffe66b;color:#111;font-weight:700;cursor:pointer}
-#shop button:hover{background:#ffda55}
+.duckInstruction,.petBadge{position:fixed;left:50%;transform:translateX(-50%);z-index:55;background:rgba(255,255,255,.97);border:1px solid #eee;border-radius:999px;padding:8px 12px;box-shadow:0 8px 20px rgba(0,0,0,.10);}
+.duckInstruction{top:112px;display:none;}
+.duckInstruction.show{display:block;}
+.petBadge{top:162px;display:none;}
+.petBadge.show{display:block;}
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;}
+.toast.show{opacity:1;}
+.duckLayer{position:absolute;inset:0;pointer-events:none;z-index:25;}
+.duck{position:absolute;pointer-events:auto;user-select:none;will-change:transform,left,top,opacity;cursor:pointer;}
+.duck .body{display:inline-block;font-size:44px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.15));line-height:1;}
+.duck .legs{position:relative;display:block;height:14px;width:44px;margin:-2px auto 0;}
+.duck .legs::before,.duck .legs::after{content:"";position:absolute;top:0;width:10px;height:12px;border-left:3px solid #222;border-bottom:3px solid #222;border-radius:2px;}
+.duck .legs::before{left:12px;} .duck .legs::after{right:12px;transform:rotate(-10deg);}
+.pet{animation:petBounce 700ms ease-in-out infinite;}
+@keyframes petBounce{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(0,-8px) scale(1.03);}}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:100;justify-content:center;align-items:center;}
+.modal-content{background:#fff;padding:20px;border-radius:12px;width:320px;text-align:center;}
