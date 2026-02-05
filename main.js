@@ -1,6 +1,7 @@
 // ---------- CONFIG ----------
-const JSONBIN_API_KEY = "$2a$10$eSpu6OdVbWfJzjSGdvMa5uwYI15tXgj1Syd97vF3Hb/xA4PljLNma"; 
-const BIN_ID = "6983e9a943b1c97be966219e"; 
+const JSONBIN_API_KEY = "$2a$10$eSpu6OdVbWfJzjSGdvMa5uwYI15tXgj1Syd97vF3Hb/xA4PljLNma";
+const BIN_ID = "6983e9a943b1c97be966219e";
+const SAVE_INTERVAL = 3000; // auto-save every 3s
 
 // ---------- UI ----------
 const tapArea = document.getElementById("tapArea");
@@ -10,25 +11,19 @@ const displayName = document.getElementById("displayName");
 const authLink = document.getElementById("authLink");
 const logoutLink = document.getElementById("logoutLink");
 const toast = document.getElementById("toast");
-const petBadge = document.getElementById("petBadge");
 const duckLayer = document.getElementById("duckLayer");
-
 const shopModal = document.getElementById("shopModal");
 const shopItems = document.getElementById("shopItems");
 const closeShop = document.getElementById("closeShop");
 
-const leaderboardModal = document.getElementById("leaderboardModal");
-const leaderboardList = document.getElementById("leaderboardList");
-const closeLeaderboard = document.getElementById("closeLeaderboard");
-
-const shopLink = document.getElementById("shopLink");
-const leaderboardLink = document.getElementById("leaderboardLink");
-
 // ---------- STATE ----------
-let user = { username:"Guest", taps:0, pets:[], golden:0, rainbow:0 };
+let user = {
+    username: "Guest",
+    taps: 0,
+    pets: []
+};
 let petTimers = {};
 let rainbowActive = false;
-let leaderboard = [];
 
 // ---------- HELPERS ----------
 function showToast(msg){
@@ -56,6 +51,7 @@ function loadData(){
     .then(d=>{
         if(d.record && typeof d.record.taps==="number") user=d.record;
         updateUI();
+        startPets(); // start pets from saved data
     }).catch(e=>console.log("Failed to load:",e));
 }
 
@@ -66,68 +62,53 @@ function updateUI(){
 }
 
 // ---------- PETS ----------
-function spawnGoldenDuck(){
-    if(petTimers.golden) return;
-    const gd = document.createElement("div");
-    gd.className="duck pet";
-    gd.innerHTML='🪿<span class="legs"></span>';
-    gd.style.left="150px";
-    gd.style.top="80px";
-    duckLayer.appendChild(gd);
+const petDefinitions = [
+    {name:"Golden Duck", icon:"🪿", cps:2, cost:50},
+    {name:"Rainbow Duck", icon:"🌈🦆", cps:1000, duration:60000, cost:500},
+    {name:"Red Duck", icon:"🦆🔴", cps:0, duration:30000, cost:200},
+    {name:"Golden Cat", icon:"🐱🪙", cps:5, cost:150}
+];
 
-    petTimers.golden = setInterval(()=>{
-        user.taps += 2;
-        updateUI();
-        saveData();
-    },1000);
+function spawnPet(pet){
+    const el = document.createElement("div");
+    el.className="duck pet";
+    el.innerHTML=pet.icon+'<span class="legs"></span>';
+    el.style.left = `${Math.random()*400+50}px`;
+    el.style.top = `${Math.random()*200+50}px`;
+    duckLayer.appendChild(el);
 
-    gd.onclick = ()=>{
-        user.taps += 1;
-        updateUI();
-        saveData();
-    }
-    showToast("Golden Duck +2/sec active");
-}
-
-function spawnRainbowDuck(){
-    if(rainbowActive) return;
-    rainbowActive = true;
-    const rd = document.createElement("div");
-    rd.className="duck pet";
-    rd.innerHTML='🌈🦆<span class="legs"></span>';
-    rd.style.left="300px";
-    rd.style.top="50px";
-    duckLayer.appendChild(rd);
-
-    let interval = setInterval(()=>{
-        user.taps += 1000;
-        updateUI();
-        saveData();
-    },1000);
-
-    setTimeout(()=>{
-        clearInterval(interval);
-        rd.remove();
-        rainbowActive = false;
-        showToast("Rainbow Duck left!");
-    },60000); // disappears after 60s
-}
-
-function spawnRedDuck(){
-    const rd = document.createElement("div");
-    rd.className="duck pet";
-    rd.innerHTML='🦆🔴<span class="legs"></span>';
-    rd.style.left=`${Math.random()*400+50}px`;
-    rd.style.top=`${Math.random()*200+50}px`;
-    duckLayer.appendChild(rd);
-
-    let clicks = 0;
-    rd.onclick = ()=>{
-        clicks++;
-        if(clicks>=3){ rd.remove(); showToast("Red Duck removed!"); }
+    if(pet.cps>0){
+        const interval = setInterval(()=>{
+            user.taps += pet.cps;
+            updateUI();
+        },1000);
+        if(!petTimers[pet.name]) petTimers[pet.name]=[];
+        petTimers[pet.name].push(interval);
     }
 
-    setTimeout(()=>{ rd.remove(); },30000); // disappears after 30s
+    if(pet.duration){
+        setTimeout(()=>{
+            el.remove();
+            if(petTimers[pet.name]){
+                petTimers[pet.name].forEach(t=>clearInterval(t));
+                petTimers[pet.name]=[];
+            }
+            showToast(`${pet.name} left!`);
+        }, pet.duration);
+    }
+
+    el.onclick = ()=>{
+        if(pet.cps>0) user.taps += pet.cps;
+        updateUI();
+    };
+}
+
+// Start all purchased pets
+function startPets(){
+    user.pets.forEach(p=>{
+        const petDef = petDefinitions.find(d=>d.name===p);
+        if(petDef) spawnPet(petDef);
+    });
 }
 
 // ---------- TAP ----------
@@ -135,57 +116,43 @@ tapArea.addEventListener("pointerdown",(e)=>{
     if(e.target !== tapArea) return;
     user.taps += 1;
     updateUI();
-    saveData();
 
-    // chance to spawn rare ducks
-    if(user.taps % 5000 === 0) spawnRainbowDuck();
-    if(user.taps % 200 === 0) spawnRedDuck();
+    // Random Rainbow Duck spawn
+    if(user.taps % 5000===0 && !rainbowActive){
+        rainbowActive=true;
+        const rainbow = petDefinitions.find(p=>p.name==="Rainbow Duck");
+        spawnPet(rainbow);
+        setTimeout(()=> rainbowActive=false, rainbow.duration);
+    }
 });
 
 // ---------- SHOP ----------
 function openShop(){
     shopModal.style.display="flex";
     shopItems.innerHTML="";
-    const items = [
-        {name:"Golden Duck", cost:50, action:()=>{ spawnGoldenDuck(); user.golden=1; saveData(); showToast("Bought Golden Duck!"); }},
-        {name:"Rainbow Duck", cost:500, action:()=>{ showToast("Rainbow Duck will appear randomly!"); }}
-    ];
-    items.forEach(item=>{
+    petDefinitions.forEach(pet=>{
         const btn = document.createElement("button");
-        btn.textContent=`${item.name} - ${item.cost} taps`;
+        btn.textContent = `${pet.name} - ${pet.cost} taps`;
         btn.onclick = ()=>{
-            if(user.taps>=item.cost){ user.taps -= item.cost; item.action(); updateUI(); saveData(); }
-            else showToast("Not enough taps!");
+            if(user.taps>=pet.cost){
+                user.taps -= pet.cost;
+                user.pets.push(pet.name);
+                spawnPet(pet);
+                updateUI();
+                saveData();
+                showToast(`Bought ${pet.name}!`);
+            } else showToast("Not enough taps!");
         }
         shopItems.appendChild(btn);
     });
 }
 
 closeShop.onclick = ()=> shopModal.style.display="none";
-shopLink.onclick = ()=> openShop();
-
-// ---------- LEADERBOARD ----------
-function openLeaderboard(){
-    leaderboardModal.style.display="flex";
-    leaderboardList.innerHTML="";
-    // for simplicity, we use the JSONBin same user data for leaderboard
-    // in real scenario, you would need multiple bins or server
-    leaderboard.push({username:user.username, taps:user.taps});
-    leaderboard.sort((a,b)=>b.taps-a.taps);
-    const top = leaderboard.slice(0,5);
-    top.forEach(u=>{
-        const div = document.createElement("div");
-        div.textContent=`${u.username}: ${u.taps}`;
-        leaderboardList.appendChild(div);
-    });
-}
-
-closeLeaderboard.onclick = ()=> leaderboardModal.style.display="none";
-leaderboardLink.onclick = ()=> openLeaderboard();
+document.getElementById("shopLink").onclick = openShop;
 
 // ---------- LOGIN ----------
 authLink.onclick = ()=>{
-    let name = prompt("Enter your username:");
+    let name = prompt("Enter username:");
     if(name){ user.username=name; updateUI(); saveData(); logoutLink.style.display="inline"; authLink.style.display="none"; }
 }
 
@@ -195,6 +162,9 @@ logoutLink.onclick = ()=>{
     logoutLink.style.display="none";
     authLink.style.display="inline";
 }
+
+// ---------- AUTO SAVE ----------
+setInterval(saveData,SAVE_INTERVAL);
 
 // ---------- INIT ----------
 loadData();
