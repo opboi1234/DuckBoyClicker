@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tap Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">Tap Leaderboard</div>
+  <nav>
+    <span id="navUser">Guest</span>
+    <button onclick="login(prompt('Username?'))">Login</button>
+    <button onclick="rebirth()">Rebirth</button>
+  </nav>
+</header>
+
+<main id="tapArea">
+  <div class="card">
+    <div class="name" id="displayName">Guest</div>
+    <div class="countWrap">
+      <div class="count" id="count">0</div>
+    </div>
+    <div class="hint">Tap anywhere!</div>
+  </div>
+</main>
+
+<div id="shop">
+  <button data-pet="goldenGoose" data-cost="50">Golden Goose (50)</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<ul id="leaderboard"></ul>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
